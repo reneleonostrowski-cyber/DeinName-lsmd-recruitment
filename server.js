@@ -25,7 +25,24 @@ app.use(express.json({limit:'1mb'}));
 app.use(session({secret:process.env.SESSION_SECRET||crypto.randomBytes(32).toString('hex'),resave:false,saveUninitialized:false,cookie:{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',maxAge:8*60*60*1000}}));
 app.use(express.static(path.join(__dirname,'public')));
 function auth(req,res,next){if(req.session.userId)return next();res.sendStatus(401)}
-app.post('/api/login', (req, res) => {
+app.post('/api/login',(req,res)=>{
+  const username=String(req.body.username||'');
+  const password=String(req.body.password||'');
+  const u=db.prepare('SELECT * FROM users WHERE username=?').get(username);
+
+  console.log('ADMIN LOGIN:', {
+    eingegebenerBenutzer: username,
+    benutzerGefunden: !!u,
+    passwortKorrekt: u ? bcrypt.compareSync(password,u.password_hash) : false
+  });
+
+  if(!u || !bcrypt.compareSync(password,u.password_hash)){
+    return res.sendStatus(401);
+  }
+
+  req.session.userId=u.id;
+  res.json({ok:true});
+});
   const username = String(req.body.username || '').trim();
   const password = String(req.body.password || '');
 

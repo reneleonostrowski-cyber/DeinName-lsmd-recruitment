@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LSMD Besitzerbereich</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:radial-gradient(circle at 50% 0,#0b3554,#07111d 42%,#040a11);color:#edf6ff;min-height:100vh}
+.wrap{width:min(1100px,92%);margin:0 auto;padding:48px 0}.brand{font-weight:900;letter-spacing:.08em;color:#9ddcff}.panel{background:#0c1724;border:1px solid #28425c;border-radius:20px;padding:26px;box-shadow:0 24px 70px #0008;margin-top:24px}
+input,select,textarea{width:100%;padding:13px 14px;margin:7px 0 14px;background:#07111c;border:1px solid #304860;border-radius:10px;color:white}.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:800;cursor:pointer;background:#e6414b;color:white}.alt{background:#15314a}.hidden{display:none}.top{display:flex;justify-content:space-between;align-items:center;gap:15px}.app{border:1px solid #263d53;border-radius:14px;padding:18px;margin-top:14px;background:#08131f}.muted{color:#9fb0c0}.error{color:#ff7d84;min-height:20px}h1,h2,h3{margin-top:0}
+</style></head><body><main class="wrap"><div class="brand">✚ LSMD · BESITZERBEREICH</div>
+<section id="login" class="panel"><h1>Besitzer Login</h1><p class="muted">Dieser Bereich ist ausschließlich für die LSMD-Leitung.</p>
+<label>Benutzername</label><input id="user" autocomplete="username"><label>Passwort</label><input id="pass" type="password" autocomplete="current-password">
+<div id="err" class="error"></div><button class="btn" onclick="login()">Anmelden</button></section>
+<section id="dash" class="panel hidden"><div class="top"><div><h1>Bewerbungen</h1><div class="muted">LSMD Recruitment Administration</div></div><button class="btn alt" onclick="logout()">Abmelden</button></div><div id="apps"></div></section>
+</main><script>
+async function login(){err.textContent='';const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user.value,password:pass.value})});if(!r.ok){err.textContent='Anmeldung fehlgeschlagen.';return}show()}
+async function logout(){await fetch('/api/admin/logout',{method:'POST'});dash.classList.add('hidden');login.classList.remove('hidden')}
+async function show(){const r=await fetch('/api/admin/applications');if(r.status===401)return;const a=await r.json();login.classList.add('hidden');dash.classList.remove('hidden');apps.innerHTML=a.length?a.map(x=>`<article class="app"><div class="top"><b>${esc(x.id)}</b><b>${esc(x.status||'Eingegangen')}</b></div><p>${esc(x.name||'')}</p><p class="muted">${esc(x.date||'')}</p></article>`).join(''):'<div class="app">Noch keine Bewerbungen vorhanden.</div>'}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+show()
+</script></body></html>

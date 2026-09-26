@@ -6,7 +6,7 @@ const bcrypt=require('bcryptjs');
 const crypto=require('crypto');
 const path=require('path');
 const app=express();
-const db=new Database('lsmd.db');
+const db=new Database(process.env.DB_PATH || 'lsmd.db');
 db.pragma('journal_mode = WAL');
 db.exec(`CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,username TEXT UNIQUE,password_hash TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS applications(id INTEGER PRIMARY KEY AUTOINCREMENT,application_id TEXT UNIQUE NOT NULL,ic_name TEXT,status TEXT NOT NULL DEFAULT 'Eingegangen',data TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);`);

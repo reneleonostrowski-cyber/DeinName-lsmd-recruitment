@@ -25,7 +25,43 @@ app.use(express.json({limit:'1mb'}));
 app.use(session({secret:process.env.SESSION_SECRET||crypto.randomBytes(32).toString('hex'),resave:false,saveUninitialized:false,cookie:{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',maxAge:8*60*60*1000}}));
 app.use(express.static(path.join(__dirname,'public')));
 function auth(req,res,next){if(req.session.userId)return next();res.sendStatus(401)}
-app.post('/api/login',(req,res)=>{
+app.post('/api/login', (req, res) => {
+  const username = String(req.body.username || '').trim();
+  const password = String(req.body.password || '');
+
+  console.log('[LOGIN] Versuch für Benutzer:', username);
+
+  const u = db.prepare(
+    'SELECT * FROM users WHERE username=?'
+  ).get(username);
+
+  if (!u) {
+    console.log('[LOGIN] FEHLER: Benutzer nicht gefunden:', username);
+    return res.status(401).json({
+      ok: false,
+      reason: 'USER_NOT_FOUND'
+    });
+  }
+
+  const passwordCorrect = bcrypt.compareSync(
+    password,
+    u.password_hash
+  );
+
+  if (!passwordCorrect) {
+    console.log('[LOGIN] FEHLER: Passwort stimmt nicht für:', username);
+    return res.status(401).json({
+      ok: false,
+      reason: 'WRONG_PASSWORD'
+    });
+  }
+
+  req.session.userId = u.id;
+
+  console.log('[LOGIN] ERFOLGREICH:', username);
+
+  res.json({ ok: true });
+});
   const username=String(req.body.username||'');
   const password=String(req.body.password||'');
   const u=db.prepare('SELECT * FROM users WHERE username=?').get(username);

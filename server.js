@@ -79,6 +79,7 @@ app.post('/api/login',(req,res)=>{
 
   res.json({ ok: true });
 });
+app.post('/api/logout',(req,res)=>req.session.destroy(()=>res.json({ok:true})));
 app.post('/api/applications',(req,res)=>{const data=req.body.data||{};let id;do{id='LSMD-'+new Date().getFullYear()+'-'+crypto.randomInt(100000,999999)}while(db.prepare('SELECT 1 FROM applications WHERE application_id=?').get(id));const name=data['Vor- und Nachname']||'';db.prepare('INSERT INTO applications(application_id,ic_name,data) VALUES(?,?,?)').run(id,name,JSON.stringify(data));res.status(201).json({application_id:id});});
 app.get('/api/status/:id',(req,res)=>{const a=db.prepare('SELECT application_id,status FROM applications WHERE application_id=?').get(req.params.id.toUpperCase());if(!a)return res.sendStatus(404);res.json(a);});
 app.get('/api/applications',auth,(req,res)=>{const rows=db.prepare('SELECT * FROM applications ORDER BY id DESC').all().map(a=>({...a,data:JSON.parse(a.data)}));res.json(rows);});
